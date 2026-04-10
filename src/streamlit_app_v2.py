@@ -12,7 +12,10 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Import bulk data utilities
-from src.model_utils import BulkDataLoader, BulkPredictionEngine
+try:
+    from src.model_utils import BulkDataLoader, BulkPredictionEngine
+except ImportError:
+    from model_utils import BulkDataLoader, BulkPredictionEngine
 
 # ============================================================================
 # CONFIG & SETUP
