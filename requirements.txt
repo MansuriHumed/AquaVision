@@ -1,0 +1,43 @@
+# AquaVision - Water Quality Prediction System
+# Requirements for all components
+
+# Core Data Science
+pandas>=1.5.0
+numpy>=1.23.0
+scipy>=1.9.0
+
+# Machine Learning
+scikit-learn>=1.2.0
+xgboost>=1.7.0
+lightgbm>=3.3.0
+shap>=0.12.0
+
+# Visualization
+matplotlib>=3.6.0
+seaborn>=0.12.0
+plotly>=5.12.0
+missingno>=0.5.0
+
+# Web Dashboard
+streamlit>=1.20.0
+streamlit-plotly-events>=0.0.6
+
+# Statistical Analysis
+statsmodels>=0.13.0
+
+# Data Processing
+scikit-optimize>=0.9.0
+
+# Utilities
+python-dotenv>=0.21.0
+PyYAML>=6.0
+tqdm>=4.65.0
+
+# API & Deployment
+fastapi>=0.95.0
+uvicorn>=0.21.0
+pydantic>=1.10.0
+
+# Utilities
+joblib>=1.2.0
+pickle-mixin>=1.0.0
