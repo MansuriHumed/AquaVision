@@ -428,8 +428,8 @@ elif page == "🔮 Predict WQI":
             phosphate = st.number_input(
                 "Phosphate (mg/L)",
                 min_value=0.0,
-                max_value=20.0,
-                value=float(df_stats["Phosphate_mg_L"].mean()),
+                max_value=5.0,
+                value=min(float(df_stats["Phosphate_mg_L"].mean()), 5.0),
                 step=0.1
             )
             
@@ -453,16 +453,16 @@ elif page == "🔮 Predict WQI":
             iron = st.number_input(
                 "Iron (mg/L)",
                 min_value=0.0,
-                max_value=10.0,
-                value=float(df_stats["Iron_mg_L"].mean()),
+                max_value=3.5,
+                value=min(float(df_stats["Iron_mg_L"].mean()), 3.5),
                 step=0.05
             )
             
             manganese = st.number_input(
                 "Manganese (mg/L)",
                 min_value=0.0,
-                max_value=5.0,
-                value=float(df_stats["Manganese_mg_L"].mean()),
+                max_value=2.5,
+                value=min(float(df_stats["Manganese_mg_L"].mean()), 2.5),
                 step=0.01
             )
         
@@ -470,25 +470,25 @@ elif page == "🔮 Predict WQI":
             coliform = st.number_input(
                 "Total Coliform (CFU)",
                 min_value=0,
-                max_value=1000,
-                value=int(df_stats["Total_Coliform_CFU_100mL"].mean()),
+                max_value=400,
+                value=min(int(df_stats["Total_Coliform_CFU_100mL"].mean()), 400),
                 step=10
             )
             
             e_coli = st.number_input(
                 "E. Coli (CFU)",
                 min_value=0,
-                max_value=500,
-                value=int(df_stats["E_Coli_CFU_100mL"].mean()),
+                max_value=250,
+                value=min(int(df_stats["E_Coli_CFU_100mL"].mean()), 250),
                 step=5
             )
             
             cod = st.number_input(
                 "COD (mg/L)",
                 min_value=0.0,
-                max_value=100.0,
-                value=float(df_stats["COD_mg_L"].mean()),
-                step=1.0
+                max_value=400.0,
+                value=min(float(df_stats["COD_mg_L"].mean()), 400.0),
+                step=5.0
             )
     
     st.markdown("---")
