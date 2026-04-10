@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
+import io
 from pathlib import Path
 from datetime import datetime
 import plotly.graph_objects as go
@@ -10,12 +11,15 @@ from plotly.subplots import make_subplots
 import warnings
 warnings.filterwarnings('ignore')
 
+# Import bulk data utilities
+from src.model_utils import BulkDataLoader, BulkPredictionEngine
+
 # ============================================================================
 # CONFIG & SETUP
 # ============================================================================
 st.set_page_config(
     page_title="AquaVision - Water Quality Predictor",
-    page_icon="💧",
+    page_icon="🌊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -141,7 +145,7 @@ try:
     df_performance = load_model_performance()
     df_importance = load_feature_importance()
 except Exception as e:
-    st.error(f"❌ Failed to load model: {str(e)}")
+    st.error(f"Failed to load model: {str(e)}")
     st.stop()
 
 # ============================================================================
@@ -150,7 +154,7 @@ except Exception as e:
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
 <div style="text-align: center; padding: 1rem; background-color: #f0f7ff; border-radius: 10px;">
-<h2 style="color: #0066cc; margin: 0;">💧 AquaVision</h2>
+<h2 style="color: #0066cc; margin: 0;">AquaVision</h2>
 <p style="color: #0066cc; margin: 0.5rem 0 0; font-size: 0.9rem;">Water Quality Prediction</p>
 </div>
 """, unsafe_allow_html=True)
@@ -158,12 +162,12 @@ st.sidebar.markdown("---")
 
 page = st.sidebar.radio(
     "Navigate to:",
-    ["🏠 Dashboard", "🔮 Predict WQI", "📊 Analytics", "📈 Model Info", "ℹ️ About"],
+    ["Dashboard", "Predict WQI", "Bulk Upload", "Analytics", "Model Info", "About"],
     key="nav"
 )
 
 st.sidebar.markdown("---")
-with st.sidebar.expander("📋 Quick Info"):
+with st.sidebar.expander("Quick Info"):
     st.markdown("""
     **Model Accuracy**: R² = 0.95
     
@@ -174,16 +178,16 @@ with st.sidebar.expander("📋 Quick Info"):
     **Training Data**: 730 samples
     
     **Categories**:
-    - ✅ Potable (70-98)
-    - ⚠️ Questionable (50-69)
-    - ❌ Not Potable (26-49)
+    - Potable (70-98)
+    - Questionable (50-69)
+    - Not Potable (26-49)
     """)
 
 # ============================================================================
 # PAGE 1: DASHBOARD
 # ============================================================================
-if page == "🏠 Dashboard":
-    st.markdown("# 💧 AquaVision Dashboard")
+if page == "Dashboard":
+    st.markdown("# AquaVision Dashboard")
     st.markdown("Real-time Water Quality Assessment & Prediction System")
     st.markdown("---")
     
@@ -192,7 +196,7 @@ if page == "🏠 Dashboard":
     
     with col1:
         st.metric(
-            label="📊 Data Points",
+            label="Data Points",
             value=f"{len(df_data):,}",
             delta="Complete Dataset"
         )
@@ -200,7 +204,7 @@ if page == "🏠 Dashboard":
     with col2:
         potable_pct = (df_data["Potability"] == "Potable").sum() / len(df_data) * 100
         st.metric(
-            label="✅ Potable %",
+            label="Potable %",
             value=f"{potable_pct:.1f}%",
             delta="Safe to Drink"
         )
@@ -208,14 +212,14 @@ if page == "🏠 Dashboard":
     with col3:
         avg_wqi = df_data["WQI"].mean()
         st.metric(
-            label="📈 Avg WQI",
+            label="Avg WQI",
             value=f"{avg_wqi:.1f}",
             delta=f"Range: {df_data['WQI'].min():.0f}-{df_data['WQI'].max():.0f}"
         )
     
     with col4:
         st.metric(
-            label="🎯 Model Accuracy",
+            label="Model Accuracy",
             value="95%",
             delta="R² Score"
         )
@@ -323,8 +327,8 @@ if page == "🏠 Dashboard":
 # ============================================================================
 # PAGE 2: PREDICT WQI
 # ============================================================================
-elif page == "🔮 Predict WQI":
-    st.markdown("# 🔮 Water Quality Prediction")
+elif page == "Predict WQI":
+    st.markdown("# Water Quality Prediction")
     st.markdown("Enter water parameters below to predict quality")
     st.markdown("---")
     
@@ -335,7 +339,7 @@ elif page == "🔮 Predict WQI":
     param_col1, param_col2 = st.columns(2)
     
     with param_col1:
-        st.subheader("📊 Basic Parameters")
+        st.subheader("Basic Parameters")
         
         ph = st.number_input(
             "pH Level",
@@ -374,7 +378,7 @@ elif page == "🔮 Predict WQI":
         )
     
     with param_col2:
-        st.subheader("🧪 Advanced Parameters")
+        st.subheader("Advanced Parameters")
         
         hardness = st.number_input(
             "Hardness (mg/L)",
@@ -494,7 +498,7 @@ elif page == "🔮 Predict WQI":
     st.markdown("---")
     
     # Prediction button
-    if st.button("🎯 Generate Prediction", use_container_width=True, key="predict_btn"):
+    if st.button("Generate Prediction", use_container_width=True, key="predict_btn"):
         # Compile all input data
         input_dict = {
             'pH': ph,
@@ -566,24 +570,24 @@ elif page == "🔮 Predict WQI":
         
         # Determine category
         if wqi_pred >= 70:
-            category = "✅ POTABLE"
+            category = "POTABLE"
             category_color = "#00cc44"
             category_desc = "Safe to Drink"
             recommendation = "Water is safe for direct consumption"
         elif wqi_pred >= 50:
-            category = "⚠️ QUESTIONABLE"
+            category = "QUESTIONABLE"
             category_color = "#ffaa00"
             category_desc = "Requires Treatment"
             recommendation = "Water requires treatment before consumption"
         else:
-            category = "❌ NOT POTABLE"
+            category = "NOT POTABLE"
             category_color = "#ff4444"
             category_desc = "Unsafe"
             recommendation = "Water is not safe for consumption - treatment required"
         
         # Display results
         st.markdown("---")
-        st.markdown("## 📋 Prediction Results")
+        st.markdown("## Prediction Results")
         
         result_col1, result_col2, result_col3 = st.columns(3)
         
@@ -615,13 +619,13 @@ elif page == "🔮 Predict WQI":
         # Recommendation box
         st.markdown(f"""
         <div style="background-color: #f0f7ff; border-left: 4px solid #0066cc; padding: 1.5rem; border-radius: 8px;">
-        <h4 style="color: #0066cc; margin-top: 0;">💡 Recommendation</h4>
+        <h4 style="color: #0066cc; margin-top: 0;">Recommendation</h4>
         <p>{recommendation}</p>
         </div>
         """, unsafe_allow_html=True)
         
         # Parameter comparison
-        st.markdown("### 📊 Parameter Analysis")
+        st.markdown("### Parameter Analysis")
         
         compare_col1, compare_col2 = st.columns(2)
         
@@ -658,8 +662,8 @@ elif page == "🔮 Predict WQI":
 # ============================================================================
 # PAGE 3: ANALYTICS
 # ============================================================================
-elif page == "📊 Analytics":
-    st.markdown("# 📊 Water Quality Analytics")
+elif page == "Analytics":
+    st.markdown("# Water Quality Analytics")
     st.markdown("Detailed analysis of water parameters across locations and time")
     st.markdown("---")
     
@@ -756,14 +760,224 @@ elif page == "📊 Analytics":
         st.plotly_chart(fig, use_container_width=True)
 
 # ============================================================================
+# PAGE 3: BULK UPLOAD
+# ============================================================================
+elif page == "Bulk Upload":
+    st.markdown("# Bulk Data Upload & Batch Processing")
+    st.markdown("Upload multiple water quality records for batch prediction")
+    st.markdown("---")
+    
+    # File upload section
+    st.subheader("Upload Data File")
+    
+    upload_col1, upload_col2 = st.columns(2)
+    
+    with upload_col1:
+        file_type = st.selectbox(
+            "Select file format:",
+            ["CSV", "Excel (XLSX)", "JSON", "SQL Database"],
+            help="Choose the format of your data file"
+        )
+    
+    with upload_col2:
+        uploaded_file = st.file_uploader(
+            "Choose file",
+            type=["csv", "xlsx", "json", "db"] if file_type != "SQL Database" else ["db"],
+            help="Upload your water quality data file"
+        )
+    
+    if uploaded_file is not None:
+        try:
+            # Determine file type and load
+            if file_type == "CSV":
+                df = BulkDataLoader.load_csv(uploaded_file)
+                format_type = "csv"
+            elif file_type == "Excel (XLSX)":
+                df = BulkDataLoader.load_xlsx(uploaded_file)
+                format_type = "xlsx"
+            elif file_type == "JSON":
+                df = BulkDataLoader.load_json(uploaded_file)
+                format_type = "json"
+            elif file_type == "SQL Database":
+                df = BulkDataLoader.load_sql(uploaded_file)
+                format_type = "sql"
+            
+            st.success(f"File loaded successfully! Shape: {df.shape}")
+            
+            # Display data preview
+            st.subheader("Data Preview")
+            st.dataframe(df.head(10), use_container_width=True)
+            
+            # Process button
+            if st.button("Process Batch Predictions", use_container_width=True):
+                with st.spinner("Processing data and generating predictions..."):
+                    try:
+                        # Process batch data with feature engineering
+                        df_processed = BulkPredictionEngine.process_batch_data(
+                            df, feature_names, scaler
+                        )
+                        
+                        # Prepare input array - properly select features from processed data
+                        input_array = df_processed[feature_names].fillna(0).values
+                        
+                        # Make predictions
+                        predictions = model.predict(input_array)
+                        
+                        # Add results
+                        df_results = BulkPredictionEngine.add_prediction_results(
+                            df.copy(), predictions
+                        )
+                        
+                        st.success("Batch processing completed!")
+                        
+                        # Display results
+                        st.subheader("Prediction Results")
+                        st.dataframe(df_results, use_container_width=True)
+                        
+                        # Statistics
+                        st.subheader("Batch Summary")
+                        stat_col1, stat_col2, stat_col3, stat_col4 = st.columns(4)
+                        
+                        with stat_col1:
+                            st.metric(
+                                "Total Records",
+                                len(df_results),
+                                "Processed"
+                            )
+                        
+                        with stat_col2:
+                            potable_count = (df_results["potability"] == "Potable").sum()
+                            st.metric(
+                                "Potable",
+                                potable_count,
+                                f"{(potable_count/len(df_results)*100):.1f}%"
+                            )
+                        
+                        with stat_col3:
+                            questionable_count = (df_results["potability"] == "Questionable").sum()
+                            st.metric(
+                                "Questionable",
+                                questionable_count,
+                                f"{(questionable_count/len(df_results)*100):.1f}%"
+                            )
+                        
+                        with stat_col4:
+                            not_potable_count = (df_results["potability"] == "Not Potable").sum()
+                            st.metric(
+                                "Not Potable",
+                                not_potable_count,
+                                f"{(not_potable_count/len(df_results)*100):.1f}%"
+                            )
+                        
+                        # Visualization
+                        st.subheader("Results Visualization")
+                        
+                        viz_col1, viz_col2 = st.columns(2)
+                        
+                        with viz_col1:
+                            fig_wqi = go.Figure(data=[
+                                go.Histogram(
+                                    x=df_results["predicted_wqi"],
+                                    nbinsx=20,
+                                    marker_color="#0066cc"
+                                )
+                            ])
+                            fig_wqi.update_layout(
+                                title="Distribution of Predicted WQI",
+                                xaxis_title="WQI Score",
+                                yaxis_title="Frequency",
+                                height=400,
+                                template="plotly_white"
+                            )
+                            st.plotly_chart(fig_wqi, use_container_width=True)
+                        
+                        with viz_col2:
+                            category_counts = df_results["potability"].value_counts()
+                            fig_category = go.Figure(data=[
+                                go.Pie(
+                                    labels=category_counts.index,
+                                    values=category_counts.values,
+                                    marker=dict(
+                                        colors=["#00cc44", "#ffaa00", "#ff4444"]
+                                    )
+                                )
+                            ])
+                            fig_category.update_layout(
+                                title="Potability Breakdown",
+                                height=400
+                            )
+                            st.plotly_chart(fig_category, use_container_width=True)
+                        
+                        # Export section
+                        st.subheader("Export Results")
+                        export_col1, export_col2 = st.columns(2)
+                        
+                        with export_col1:
+                            csv_data = df_results.to_csv(index=False)
+                            st.download_button(
+                                label="Download as CSV",
+                                data=csv_data,
+                                file_name="batch_predictions.csv",
+                                mime="text/csv",
+                                use_container_width=True
+                            )
+                        
+                        with export_col2:
+                            # Create Excel file in memory
+                            excel_buffer = io.BytesIO()
+                            with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+                                df_results.to_excel(writer, index=False, sheet_name='Predictions')
+                            excel_data = excel_buffer.getvalue()
+                            
+                            st.download_button(
+                                label="Download as Excel",
+                                data=excel_data,
+                                file_name="batch_predictions.xlsx",
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                use_container_width=True
+                            )
+                    
+                    except Exception as e:
+                        st.error(f"Error during processing: {str(e)}")
+        
+        except Exception as e:
+            st.error(f"Error loading file: {str(e)}")
+    
+    # Instructions
+    with st.expander("How to Use"):
+        st.markdown("""
+        **Supported Formats:**
+        - CSV: Comma-separated values
+        - XLSX: Microsoft Excel spreadsheet
+        - JSON: JavaScript Object Notation
+        - SQL: SQLite database files
+        
+        **Required Columns:**
+        Your data should include water quality parameters such as:
+        - pH
+        - Dissolved Oxygen (mg/L)
+        - Turbidity (NTU)
+        - Temperature (C)
+        - Hardness (mg/L)
+        - And other water quality metrics
+        
+        **Process:**
+        1. Select file format
+        2. Upload your file
+        3. Review the preview
+        4. Click "Process Batch Predictions"
+        5. Download results as CSV or Excel
+        """)
+
+# ============================================================================
 # PAGE 4: MODEL INFO
 # ============================================================================
-elif page == "📈 Model Info":
-    st.markdown("# 📈 Model Information & Performance")
+elif page == "Model Info":
+    st.markdown("# Model Information & Performance")
     st.markdown("---")
     
     # Model performance metrics
-    st.subheader("🎯 Model Performance Metrics")
+    st.subheader("Model Performance Metrics")
     
     metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
     
@@ -881,20 +1095,20 @@ elif page == "📈 Model Info":
 # ============================================================================
 # PAGE 5: ABOUT
 # ============================================================================
-elif page == "ℹ️ About":
-    st.markdown("# ℹ️ About AquaVision")
+elif page == "About":
+    st.markdown("# About AquaVision")
     st.markdown("---")
     
     col1, col2 = st.columns([2, 1])
     
     with col1:
         st.markdown("""
-        ## 💧 AquaVision System
+        ## AquaVision System
         
         AquaVision is an advanced machine learning system designed to predict water quality and assess potability in real-time. 
         Using 54 engineered features derived from water parameters, the system provides accurate predictions with 95% accuracy.
         
-        ### 🎯 Key Features
+        ### Key Features
         
         - **Accurate Predictions**: 95% accuracy with R² = 0.95
         - **Real-time Analysis**: Instant water quality assessment
@@ -902,7 +1116,7 @@ elif page == "ℹ️ About":
         - **Easy to Use**: Intuitive interface for water quality professionals
         - **Scientific Basis**: Based on comprehensive water quality standards
         
-        ### 🔬 Technology Stack
+        ### Technology Stack
         
         - **ML Framework**: XGBoost (primary model)
         - **Data Analysis**: Pandas, NumPy
@@ -919,15 +1133,15 @@ elif page == "ℹ️ About":
         - **Organic Contamination**: BOD, COD
         - **Nutrients**: Ammonia, Nitrate, Phosphate
         
-        ### ✅ Quality Categories
+        ### Quality Categories
         
         | Category | WQI Range | Status |
         |----------|-----------|--------|
-        | Potable | 70 - 98 | ✅ Safe to Drink |
-        | Questionable | 50 - 69 | ⚠️ Requires Treatment |
-        | Not Potable | 26 - 49 | ❌ Unsafe |
+        | Potable | 70 - 98 | Safe to Drink |
+        | Questionable | 50 - 69 | Requires Treatment |
+        | Not Potable | 26 - 49 | Unsafe |
         
-        ### 📞 Support & Information
+        ### Support & Information
         
         For questions or issues with the system, please contact the development team.
         All predictions should be verified with professional water testing.

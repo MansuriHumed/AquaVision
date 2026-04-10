@@ -1,0 +1,49 @@
+{
+  "data": [
+    {
+      "pH": 7.2,
+      "Dissolved_Oxygen_mg_L": 8.5,
+      "Temperature_C": 22.1,
+      "Turbidity_NTU": 2.3,
+      "Hardness_mg_L": 150,
+      "Conductivity_uS_cm": 450,
+      "BOD_mg_L": 2.1,
+      "Ammonia_mg_L": 0.15,
+      "Nitrate_mg_L": 5.2,
+      "Phosphate_mg_L": 0.8,
+      "E_Coli_CFU_100mL": 0,
+      "Total_Coliform_CFU_100mL": 5,
+      "WQI": 72
+    },
+    {
+      "pH": 7.0,
+      "Dissolved_Oxygen_mg_L": 8.0,
+      "Temperature_C": 21.0,
+      "Turbidity_NTU": 3.0,
+      "Hardness_mg_L": 160,
+      "Conductivity_uS_cm": 470,
+      "BOD_mg_L": 2.5,
+      "Ammonia_mg_L": 0.20,
+      "Nitrate_mg_L": 6.0,
+      "Phosphate_mg_L": 1.0,
+      "E_Coli_CFU_100mL": 3,
+      "Total_Coliform_CFU_100mL": 10,
+      "WQI": 68
+    },
+    {
+      "pH": 6.8,
+      "Dissolved_Oxygen_mg_L": 7.5,
+      "Temperature_C": 20.5,
+      "Turbidity_NTU": 5.2,
+      "Hardness_mg_L": 180,
+      "Conductivity_uS_cm": 520,
+      "BOD_mg_L": 4.2,
+      "Ammonia_mg_L": 0.35,
+      "Nitrate_mg_L": 8.5,
+      "Phosphate_mg_L": 1.5,
+      "E_Coli_CFU_100mL": 15,
+      "Total_Coliform_CFU_100mL": 25,
+      "WQI": 55
+    }
+  ]
+}
