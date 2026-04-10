@@ -233,7 +233,7 @@ if page == "Dashboard":
     viz_col1, viz_col2 = st.columns(2)
     
     with viz_col1:
-        st.subheader("🔄 Water Quality Distribution")
+        st.subheader("Water Quality Distribution")
         
         # Create WQI distribution chart
         fig = go.Figure()
@@ -264,7 +264,7 @@ if page == "Dashboard":
         st.plotly_chart(fig, use_container_width=True)
     
     with viz_col2:
-        st.subheader("🥧 Potability Categories")
+        st.subheader("Potability Categories")
         
         potability_counts = df_data["Potability"].value_counts()
         colors_map = {
@@ -293,7 +293,7 @@ if page == "Dashboard":
     st.markdown("---")
     
     # Parameter insights
-    st.subheader("🔬 Key Parameters Overview")
+    st.subheader("Key Parameters Overview")
     
     param_col1, param_col2, param_col3 = st.columns(3)
     
@@ -420,7 +420,7 @@ elif page == "Predict WQI":
         )
     
     # Additional parameters - expandable section
-    with st.expander("🔧 More Parameters", expanded=False):
+    with st.expander("More Parameters", expanded=False):
         adv_col1, adv_col2, adv_col3 = st.columns(3)
         
         with adv_col1:
