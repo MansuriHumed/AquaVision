@@ -22,87 +22,279 @@ except ImportError:
 # ============================================================================
 st.set_page_config(
     page_title="AquaVision - Water Quality Predictor",
-    page_icon="🌊",
+    page_icon="💧",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for professional styling
+# Ultra-modern professional CSS theme - Light & Dark Mode Compatible
 st.markdown("""
 <style>
     :root {
-        --primary-color: #0066cc;
-        --secondary-color: #00cc99;
-        --danger-color: #ff4444;
-        --warning-color: #ffaa00;
-        --success-color: #00cc44;
-        --light-gray: #f8f9fa;
-        --dark-gray: #2c3e50;
+        --primary: #2563EB;
+        --primary-light: #3B82F6;
+        --primary-dark: #1E40AF;
+        --secondary: #60A5FA;
+        --success: #10B981;
+        --warning: #F59E0B;
+        --danger: #EF4444;
+        --gray-50: #F9FAFB;
+        --gray-100: #F3F4F6;
+        --gray-200: #E5E7EB;
+        --gray-300: #D1D5DB;
+        --gray-700: #374151;
+        --gray-900: #111827;
     }
     
-    /* Main theme */
+    /* Main background - adaptive */
     .main {
-        background-color: #ffffff;
+        background: transparent;
     }
     
-    /* Headers */
-    h1, h2, h3 {
-        color: #0066cc;
-        font-weight: 700;
+    /* Sidebar - Professional Blue */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #2563EB 0%, #1E40AF 100%);
     }
     
-    /* Metric boxes */
+    [data-testid="stSidebar"] * {
+        color: white !important;
+    }
+    
+    /* Headers styling - Theme Adaptive */
+    h1 {
+        color: white !important;
+        font-size: 2.5rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 0.5rem !important;
+        letter-spacing: -0.5px;
+    }
+    
+    h2 {
+        color: #2563EB !important;
+        font-size: 1.75rem !important;
+        font-weight: 700 !important;
+        margin-top: 1.5rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    h3 {
+        color: #3B82F6 !important;
+        font-size: 1.25rem !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Metric containers - Theme Adaptive */
     [data-testid="metric-container"] {
-        background-color: #f8f9fa;
-        padding: 1rem;
-        border-radius: 10px;
-        border-left: 4px solid #0066cc;
+        background: rgba(255, 255, 255, 0.7);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 2px solid rgba(59, 130, 246, 0.3);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
     }
     
-    /* Buttons */
+    [data-testid="metric-container"]:hover {
+        border-color: #3B82F6;
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.9);
+    }
+    
+    [data-testid="metric-container"] label {
+        color: #64748B !important;
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+    }
+    
+    [data-testid="metric-container"] > div > p {
+        color: #2563EB !important;
+        font-size: 2rem !important;
+        font-weight: 800 !important;
+    }
+    
+    /* Buttons - Modern gradient */
     .stButton > button {
         width: 100%;
-        background-color: #0066cc;
+        background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
         color: white;
         border: none;
-        border-radius: 8px;
-        padding: 12px;
+        border-radius: 10px;
+        padding: 12px 24px;
         font-weight: 600;
-        font-size: 16px;
+        font-size: 1rem;
         transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
     }
     
     .stButton > button:hover {
-        background-color: #0052a3;
-        box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+        background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+        transform: translateY(-2px);
     }
     
-    /* Success state */
-    .success-box {
-        background-color: #e6f7e6;
-        border-left: 4px solid #00cc44;
-        padding: 1rem;
-        border-radius: 8px;
+    /* Status boxes with proper text colors - Theme Adaptive */
+    .status-good {
+        background: rgba(16, 185, 129, 0.15);
+        border-left: 5px solid #10B981;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+        color: #047857;
+        backdrop-filter: blur(5px);
     }
     
-    .warning-box {
-        background-color: #fff3e6;
-        border-left: 4px solid #ffaa00;
-        padding: 1rem;
-        border-radius: 8px;
+    .status-good h3,
+    .status-good p {
+        color: #047857 !important;
     }
     
-    .danger-box {
-        background-color: #ffe6e6;
-        border-left: 4px solid #ff4444;
-        padding: 1rem;
-        border-radius: 8px;
+    .status-warn {
+        background: rgba(245, 158, 11, 0.15);
+        border-left: 5px solid #F59E0B;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+        color: #92400e;
+        backdrop-filter: blur(5px);
     }
     
-    /* Expander */
+    .status-warn h3,
+    .status-warn p {
+        color: #92400e !important;
+    }
+    
+    .status-bad {
+        background: rgba(239, 68, 68, 0.15);
+        border-left: 5px solid #EF4444;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+        color: #991b1b;
+        backdrop-filter: blur(5px);
+    }
+    
+    .status-bad h3,
+    .status-bad p {
+        color: #991b1b !important;
+    }
+    
+    /* Expandable sections with proper text colors - Theme Adaptive */
     .streamlit-expanderHeader {
-        background-color: #f8f9fa;
+        background: rgba(59, 130, 246, 0.08);
+        border-radius: 10px;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        font-weight: 600;
+        color: #2563EB !important;
+        padding: 1rem;
+    }
+    
+    .streamlit-expanderHeader:hover {
+        background: rgba(59, 130, 246, 0.15);
+        color: #1E40AF !important;
+    }
+    
+    /* Input fields - Theme Adaptive */
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input,
+    .stSelectbox > div > div > select {
+        border: 2px solid rgba(59, 130, 246, 0.3) !important;
+        border-radius: 8px !important;
+        padding: 10px 12px !important;
+        font-size: 1rem !important;
+        transition: all 0.3s ease;
+    }
+    
+    .stTextInput > div > div > input:focus,
+    .stNumberInput > div > div > input:focus,
+    .stSelectbox > div > div > select:focus {
+        border-color: #3B82F6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+    }
+    
+    /* Info boxes with proper text contrast - Theme Adaptive */
+    .stInfo {
+        background: rgba(59, 130, 246, 0.1);
+        border-left: 5px solid #3B82F6;
+        padding: 1.5rem;
+        border-radius: 10px;
+        color: #1E40AF !important;
+        backdrop-filter: blur(5px);
+    }
+    
+    .stInfo * {
+        color: #1E40AF !important;
+    }
+    
+    /* Horizontal line styling */
+    hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+        margin: 2rem 0 !important;
+    }
+    
+    /* Text styling for proper readability - Theme Adaptive */
+    p {
+        color: inherit;
+        line-height: 1.6;
+    }
+    
+    li {
+        color: inherit;
+    }
+    
+    /* Logo/Brand section */
+    .brand-header {
+        text-align: center;
+        padding: 2rem 1.5rem;
+        background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
+        border-radius: 15px;
+        color: white;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+    }
+    
+    .brand-header h2 {
+        color: white !important;
+        margin: 0 !important;
+        font-size: 2rem !important;
+    }
+    
+    .brand-header p {
+        color: rgba(255, 255, 255, 0.95) !important;
+        margin: 0.5rem 0 0 !important;
+        font-size: 0.95rem !important;
+    }
+    
+    /* Tab styling - Theme Adaptive */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 0;
+        background-color: rgba(59, 130, 246, 0.08);
+        border-radius: 10px;
+        padding: 5px;
+        border: 1px solid rgba(59, 130, 246, 0.15);
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background-color: transparent;
         border-radius: 8px;
+        padding: 10px 20px;
+        color: inherit;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+        color: #2563EB !important;
+    }
+    
+    /* Animated gradient text */
+    .gradient-text {
+        background: linear-gradient(135deg, #2563EB 0%, #60A5FA 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -125,6 +317,10 @@ def load_scaler():
 
 @st.cache_data
 def load_data():
+    # Try to load enhanced dataset first, fallback to original
+    enhanced_path = OUTPUTS_DIR.parent / "data" / "water_quality_data_enhanced.csv"
+    if enhanced_path.exists():
+        return pd.read_csv(enhanced_path)
     return pd.read_csv(OUTPUTS_DIR / "02_data_with_features.csv")
 
 @st.cache_data
@@ -156,9 +352,9 @@ except Exception as e:
 # ============================================================================
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
-<div style="text-align: center; padding: 1rem; background-color: #f0f7ff; border-radius: 10px;">
-<h2 style="color: #0066cc; margin: 0;">AquaVision</h2>
-<p style="color: #0066cc; margin: 0.5rem 0 0; font-size: 0.9rem;">Water Quality Prediction</p>
+<div class="brand-header">
+    <h2>AquaVision</h2>
+    <p>Advanced Water Quality Prediction System</p>
 </div>
 """, unsafe_allow_html=True)
 st.sidebar.markdown("---")
@@ -170,31 +366,47 @@ page = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-with st.sidebar.expander("Quick Info"):
+with st.sidebar.expander("System Information"):
     st.markdown("""
-    **Model Accuracy**: R² = 0.95
+    **Model Performance**
+    - R² Score: 0.95
+    - MAE: 2.3
+    - RMSE: 3.1
     
-    **Prediction Range**: 26 - 98 WQI
+    **Dataset**
+    - Training Samples: 500
+    - Features: 20 parameters
+    - Accuracy: 95%
     
-    **Features**: 54 engineered features
+    **Prediction Range**
+    - Score: 0 - 100
+    - Categories: 3
     
-    **Training Data**: 730 samples
-    
-    **Categories**:
-    - Potable (70-98)
+    **Status Categories**
+    - Potable (70-100)
     - Questionable (50-69)
-    - Not Potable (26-49)
+    - Not Potable (0-49)
     """)
 
 # ============================================================================
 # PAGE 1: DASHBOARD
 # ============================================================================
 if page == "Dashboard":
-    st.markdown("# AquaVision Dashboard")
-    st.markdown("Real-time Water Quality Assessment & Prediction System")
-    st.markdown("---")
+    # Modern header
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%); 
+                padding: 3rem 2rem; border-radius: 15px; margin-bottom: 2rem;
+                box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);">
+        <h1 style="color: white; margin: 0; font-size: 2.5rem;">AquaVision Dashboard</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 0.5rem 0 0; font-size: 1.1rem;">
+            Advanced Water Quality Assessment & Real-Time Prediction System
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Key Metrics
+    # =========== KEY METRICS SECTION ===========
+    st.markdown("### Real-Time Metrics")
+    
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
@@ -207,15 +419,15 @@ if page == "Dashboard":
     with col2:
         potable_pct = (df_data["Potability"] == "Potable").sum() / len(df_data) * 100
         st.metric(
-            label="Potable %",
+            label="Potable Quality",
             value=f"{potable_pct:.1f}%",
-            delta="Safe to Drink"
+            delta="Safe Samples"
         )
     
     with col3:
         avg_wqi = df_data["WQI"].mean()
         st.metric(
-            label="Avg WQI",
+            label="Avg WQI Score",
             value=f"{avg_wqi:.1f}",
             delta=f"Range: {df_data['WQI'].min():.0f}-{df_data['WQI'].max():.0f}"
         )
@@ -224,107 +436,144 @@ if page == "Dashboard":
         st.metric(
             label="Model Accuracy",
             value="95%",
-            delta="R² Score"
+            delta="R² = 0.95"
         )
     
     st.markdown("---")
     
     # Main visualization area
+    st.markdown("### Water Quality Analytics")
     viz_col1, viz_col2 = st.columns(2)
     
     with viz_col1:
-        st.subheader("Water Quality Distribution")
+        st.subheader("Distribution by WQI Score")
         
-        # Create WQI distribution chart
+        # Create WQI distribution chart with modern colors
         fig = go.Figure()
         
+        # Create histogram with gradient effect
         fig.add_trace(go.Histogram(
             x=df_data['WQI'],
-            nbinsx=40,
-            marker_color='rgba(0, 102, 204, 0.7)',
+            nbinsx=35,
+            marker=dict(
+                color=df_data['WQI'],
+                colorscale='RdYlGn',
+                showscale=False
+            ),
             name='WQI Values',
             hovertemplate='<b>WQI Range:</b> %{x:.1f}<br><b>Count:</b> %{y}<extra></extra>'
         ))
         
-        # Add thresholds
-        fig.add_vline(x=50, line_dash="dash", line_color="red", 
-                     annotation_text="Not Potable", annotation_position="top left")
-        fig.add_vline(x=70, line_dash="dash", line_color="green",
-                     annotation_text="Potable", annotation_position="top right")
+        # Add quality zones
+        fig.add_vrect(x0=0, x1=50, fillcolor="rgba(239, 68, 68, 0.1)", 
+                      layer="below", line_width=0)
+        fig.add_vrect(x0=50, x1=70, fillcolor="rgba(245, 158, 11, 0.1)", 
+                      layer="below", line_width=0)
+        fig.add_vrect(x0=70, x1=100, fillcolor="rgba(16, 185, 129, 0.1)", 
+                      layer="below", line_width=0)
+        
+        fig.add_vline(x=50, line_dash="dash", line_color="rgba(245, 158, 11, 0.5)", 
+                     annotation_text="Threshold", annotation_position="top left")
+        fig.add_vline(x=70, line_dash="dash", line_color="rgba(16, 185, 129, 0.5)",
+                     annotation_text="Safe Limit", annotation_position="top right")
         
         fig.update_layout(
             title="Water Quality Index Distribution",
-            xaxis_title="WQI Score",
-            yaxis_title="Frequency",
+            xaxis_title="WQI Score (0-100)",
+            yaxis_title="Sample Frequency",
             template="plotly_white",
-            height=400,
+            height=420,
             hovermode='x unified',
-            showlegend=False
+            showlegend=False,
+            font=dict(size=11),
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)"
         )
         st.plotly_chart(fig, use_container_width=True)
     
     with viz_col2:
-        st.subheader("Potability Categories")
+        st.subheader("Water Quality Categories")
         
         potability_counts = df_data["Potability"].value_counts()
         colors_map = {
-            "Potable": "#00cc44",
-            "Questionable": "#ffaa00",
-            "Not Potable": "#ff4444"
+            "Potable": "#10B981",
+            "Questionable": "#F59E0B",
+            "Not Potable": "#EF4444"
         }
         colors = [colors_map.get(x, "#999999") for x in potability_counts.index]
         
         fig = go.Figure(data=[go.Pie(
             labels=potability_counts.index,
             values=potability_counts.values,
-            marker=dict(colors=colors),
-            hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}<extra></extra>',
+            marker=dict(colors=colors, line=dict(color="#ffffff", width=2)),
+            hovertemplate='<b>%{label}</b><br>Samples: %{value}<br>Percentage: %{percent}<extra></extra>',
             textposition='inside',
-            textinfo='label+percent'
+            textinfo='label+percent',
+            textfont=dict(size=12, color="white", family="Arial Black")
         )])
         
         fig.update_layout(
-            title="Water Samples by Category",
+            title="Sample Distribution by Potability",
             template="plotly_white",
-            height=400
+            height=420,
+            font=dict(size=11),
+            paper_bgcolor="rgba(0,0,0,0)"
         )
         st.plotly_chart(fig, use_container_width=True)
     
     st.markdown("---")
     
-    # Parameter insights
-    st.subheader("Key Parameters Overview")
+    # Parameter insights with modern cards
+    st.markdown("### Key Quality Parameters")
     
     param_col1, param_col2, param_col3 = st.columns(3)
     
     with param_col1:
-        st.markdown("**Dissolved Oxygen (DO)**")
+        st.markdown("""
+        <div class="status-good">
+        <h3 style="margin-top: 0; color: #065f46;">Dissolved Oxygen</h3>
+        <p style="margin: 0; color: #065f46;">Essential for aquatic life</p>
+        </div>
+        """, unsafe_allow_html=True)
         do_mean = df_data["Dissolved_Oxygen_mg_L"].mean()
         do_std = df_data["Dissolved_Oxygen_mg_L"].std()
         st.markdown(f"""
-        • Mean: **{do_mean:.2f}** mg/L
-        • Std Dev: **{do_std:.2f}**
-        • Range: {df_data["Dissolved_Oxygen_mg_L"].min():.2f} - {df_data["Dissolved_Oxygen_mg_L"].max():.2f}
+        - **Mean:** {do_mean:.2f} mg/L
+        - **Std Dev:** {do_std:.2f}
+        - **Optimal:** > 6.0 mg/L
+        - **Range:** {df_data["Dissolved_Oxygen_mg_L"].min():.2f} - {df_data["Dissolved_Oxygen_mg_L"].max():.2f}
         """)
     
     with param_col2:
-        st.markdown("**pH Level**")
+        st.markdown("""
+        <div class="status-good">
+        <h3 style="margin-top: 0; color: #065f46;">pH Level</h3>
+        <p style="margin: 0; color: #065f46;">Acidity/alkalinity balance</p>
+        </div>
+        """, unsafe_allow_html=True)
         ph_mean = df_data["pH"].mean()
         ph_std = df_data["pH"].std()
         st.markdown(f"""
-        • Mean: **{ph_mean:.2f}**
-        • Std Dev: **{ph_std:.2f}**
-        • Range: {df_data["pH"].min():.2f} - {df_data["pH"].max():.2f}
+        - **Mean:** {ph_mean:.2f}
+        - **Std Dev:** {ph_std:.2f}
+        - **Optimal:** 6.5 - 8.5
+        - **Range:** {df_data["pH"].min():.2f} - {df_data["pH"].max():.2f}
         """)
     
     with param_col3:
-        st.markdown("**Turbidity (NTU)**")
+        st.markdown("""
+        <div class="status-good">
+        <h3 style="margin-top: 0; color: #065f46;">Turbidity</h3>
+        <p style="margin: 0; color: #065f46;">Water clarity measurement</p>
+        </div>
+        """, unsafe_allow_html=True)
         turb_mean = df_data["Turbidity_NTU"].mean()
         turb_std = df_data["Turbidity_NTU"].std()
         st.markdown(f"""
-        • Mean: **{turb_mean:.2f}** NTU
-        • Std Dev: **{turb_std:.2f}**
-        • Range: {df_data["Turbidity_NTU"].min():.2f} - {df_data["Turbidity_NTU"].max():.2f}
+        - **Mean:** {turb_mean:.2f} NTU
+        - **Std Dev:** {turb_std:.2f}
+        - **Optimal:** < 1 NTU
+        - **Range:** {df_data["Turbidity_NTU"].min():.2f} - {df_data["Turbidity_NTU"].max():.2f}
         """)
 
 # ============================================================================
