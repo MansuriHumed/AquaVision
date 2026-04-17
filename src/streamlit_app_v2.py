@@ -496,9 +496,9 @@ if page == "Dashboard":
         
         potability_counts = df_data["Potability"].value_counts()
         colors_map = {
-            "Potable": "#10B981",
-            "Questionable": "#F59E0B",
-            "Not Potable": "#EF4444"
+            "POTABLE": "#10B981",
+            "QUESTIONABLE": "#F59E0B",
+            "NOT POTABLE": "#EF4444"
         }
         colors = [colors_map.get(x, "#999999") for x in potability_counts.index]
         
