@@ -83,61 +83,80 @@ class BulkPredictionEngine:
     
     @staticmethod
     def process_batch_data(df, feature_names, scaler):
-        """Add engineered features for batch data"""
-        df = BulkPredictionEngine.standardize_columns(df.copy())
+        """Process batch data - RETRAINED MODEL (NO data leakage)
         
-        # Ensure all required features exist in dataframe
-        for feat in feature_names:
-            if feat not in df.columns:
-                df[feat] = 0.0
+        This uses the fixed model that was retrained WITHOUT WQI rolling features.
+        The model now uses only 19 input features and was trained on UNSCALED data.
+        """
+        df = df.copy()
         
-        # Essential water quality parameters
-        core_params = [
-            'ph', 'dissolved_oxygen_mg_l', 'turbidity_ntu', 'hardness_mg_l',
-            'conductivity_us_cm', 'bod_mg_l', 'ammonia_mg_l', 'nitrate_mg_l',
-            'phosphate_mg_l', 'total_coliform_cfu_100ml', 'e_coli_cfu_100ml'
+        # Ensure raw features exist
+        raw_features = [
+            'pH', 'Dissolved_Oxygen_mg_L', 'Turbidity_NTU', 'Conductivity_uS_cm',
+            'Temperature_C', 'Hardness_mg_L', 'Chloride_mg_L', 'Ammonia_mg_L',
+            'Nitrate_mg_L', 'Phosphate_mg_L', 'Iron_mg_L', 'Manganese_mg_L',
+            'Sulfate_mg_L', 'Total_Coliform_CFU_100mL', 'E_Coli_CFU_100mL',
+            'BOD_mg_L', 'COD_mg_L'
         ]
         
-        # Add rolling features
-        for param in core_params:
-            if param in df.columns:
-                df[f'{param}_rolling_7d'] = df[param].rolling(window=7, min_periods=1).mean()
-                df[f'{param}_rolling_30d'] = df[param].rolling(window=30, min_periods=1).mean()
-                df[f'{param}_rolling_std'] = df[param].rolling(window=7, min_periods=1).std().fillna(1.0)
-        
-        # Add WQI rolling features if WQI exists
-        if 'wqi' in df.columns:
-            df['wqi_rolling_7d'] = df['wqi'].rolling(window=7, min_periods=1).mean()
-            df['wqi_rolling_30d'] = df['wqi'].rolling(window=30, min_periods=1).mean()
-            df['wqi_rolling_std'] = df['wqi'].rolling(window=7, min_periods=1).std().fillna(2.0)
-        else:
-            df['wqi_rolling_7d'] = 50.0
-            df['wqi_rolling_30d'] = 50.0
-            df['wqi_rolling_std'] = 2.0
-        
-        # Location and Season defaults
-        if 'location' not in df.columns:
-            df['location'] = 0
-        if 'season' not in df.columns:
-            df['season'] = 1
-        
-        # Ensure all features are present
-        for feat in feature_names:
+        for feat in raw_features:
             if feat not in df.columns:
                 df[feat] = 0.0
         
-        return df
+        # Add categorical features
+        if 'Location' not in df.columns:
+            df['Location'] = 'Unknown'
+        if 'Season' not in df.columns:
+            df['Season'] = 'Winter'
+        
+        # Factorize categorical variables to match training
+        df['Location'] = pd.factorize(df['Location'])[0]
+        df['Season'] = pd.factorize(df['Season'])[0]
+        
+        # Select ONLY the features model expects (NO scaling - model trained on unscaled data)
+        df_features = df[feature_names].fillna(0).copy()
+        
+        print(f"\n=== BATCH PROCESSING DEBUG ===")
+        print(f"Input shape: {df_features.shape}")
+        print(f"Expected features: {len(feature_names)}")
+        print(f"First row: pH={df['pH'].iloc[0]:.2f}, DO={df['Dissolved_Oxygen_mg_L'].iloc[0]:.2f}, E_Coli={df['E_Coli_CFU_100mL'].iloc[0]:.0f}")
+        print(f"Last row: pH={df['pH'].iloc[-1]:.2f}, DO={df['Dissolved_Oxygen_mg_L'].iloc[-1]:.2f}, E_Coli={df['E_Coli_CFU_100mL'].iloc[-1]:.0f}")
+        print(f"==================================\n")
+        
+        # Return unscaled features (model was trained on unscaled data)
+        return df_features
     
     @staticmethod
     def add_prediction_results(df, predictions):
         """Add prediction results and categories"""
         df['predicted_wqi'] = predictions
         
-        # Categorize predictions
+        # UPDATED THRESHOLDS based on actual model training ranges:
+        # NOT POTABLE: 41.62 - 54.00  (mean 49.49)
+        # QUESTIONABLE: 60.24 - 66.38 (mean 63.36)
+        # POTABLE: 85.07 - 87.56      (mean 86.31)
+        # Using boundaries: <60 -> Not Potable, 60-75 -> Questionable, >=75 -> Potable
+        
+        print(f"\n=== PREDICTION DEBUG (Corrected Thresholds) ===")
+        print(f"Min WQI Prediction: {predictions.min():.2f}")
+        print(f"Max WQI Prediction: {predictions.max():.2f}")
+        print(f"Mean WQI Prediction: {predictions.mean():.2f}")
+        print(f"Std WQI Prediction: {predictions.std():.2f}")
+        
+        # Show distribution by ranges (CORRECTED)
+        print(f"\nPrediction ranges:")
+        print(f"  < 60 (Not Potable): {(predictions < 60).sum()}")
+        print(f"  60-75 (Questionable): {((predictions >= 60) & (predictions < 75)).sum()}")
+        print(f"  >= 75 (Potable): {(predictions >= 75).sum()}")
+        
+        print(f"\nLast 5 predictions: {predictions[-5:]}")
+        print(f"==============================================\n")
+        
+        # Categorize predictions using CORRECTED thresholds
         conditions = [
-            df['predicted_wqi'] >= 70,
-            (df['predicted_wqi'] >= 50) & (df['predicted_wqi'] < 70),
-            df['predicted_wqi'] < 50
+            df['predicted_wqi'] >= 75,  # Potable (model learned 85-87)
+            (df['predicted_wqi'] >= 60) & (df['predicted_wqi'] < 75),  # Questionable (60-66)
+            df['predicted_wqi'] < 60  # Not Potable (model learned 41-54)
         ]
         categories = ['Potable', 'Questionable', 'Not Potable']
         df['potability'] = np.select(conditions, categories, default='Unknown')
