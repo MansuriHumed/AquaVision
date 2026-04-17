@@ -417,7 +417,7 @@ if page == "Dashboard":
         )
     
     with col2:
-        potable_pct = (df_data["Potability"] == "Potable").sum() / len(df_data) * 100
+        potable_pct = (df_data["Potability"] == "POTABLE").sum() / len(df_data) * 100
         st.metric(
             label="Potable Quality",
             value=f"{potable_pct:.1f}%",
